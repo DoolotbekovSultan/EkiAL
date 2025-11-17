@@ -1,0 +1,66 @@
+name: eki_al
+description: "Eki Al Mobile Application"
+publish_to: 'none' # Проект не будет опубликован на pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.2 # Минимальная версия Dart SDK
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # ========== ROUTING & DEPENDENCY INJECTION ==========
+  auto_route: ^10.2.2           # Генерация типобезопасных маршрутов
+  injectable: ^2.6.0            # Внедрение зависимостей (аналог Dagger/Hilt)
+  get_it: ^9.0.5                # Service Locator для управления зависимостями
+
+  # ========== STATE MANAGEMENT ==========
+  flutter_bloc: ^9.1.1          # BLoC паттерн для управления состоянием
+  equatable: ^2.0.7             # Упрощает сравнение объектов (== и hashCode)
+
+  # ========== NETWORK ==========
+  dio: ^5.9.0                   # HTTP-клиент для сетевых запросов
+  connectivity_plus: ^7.0.0     # Проверка подключения к интернету
+
+  # ========== SERIALIZATION & DATA MODELS ==========
+  json_annotation: ^4.9.0       # Аннотации для JSON сериализации
+  freezed_annotation: ^3.1.0    # Аннотации для Freezed
+
+  # ========== LOCAL STORAGE ==========
+  shared_preferences: ^2.5.3    # Простое key-value хранилище (аналог SharedPrefs)
+  hive: ^2.2.3                  # Быстрая NoSQL база данных
+  hive_flutter: ^1.1.0          # Flutter-интеграция для Hive
+
+  # ========== MONITORING & ANALYTICS ==========
+  logger: ^2.6.2                # Красивое логирование в консоли
+
+  # ========== UI & UTILITIES ==========
+  cupertino_icons: ^1.0.8       # Иконки для iOS-стиля
+  flutter_hooks: ^0.21.3+1      # Хуки для упрощения state management (аналог React Hooks)
+  intl: ^0.20.2                 # Интернационализация и форматирование дат/чисел
+  cached_network_image: ^3.4.1
+  decimal: ^3.2.4
+  dartz: ^0.10.1
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # ========== CODE QUALITY ==========
+  flutter_lints: ^5.0.0         # Набор правил линтера для качественного кода
+
+  # ========== CODE GENERATION ==========
+  freezed: ^3.2.3               # Генерация неизменяемых моделей (аналог data class)
+  build_runner: ^2.10.3         # Движок для генерации кода (запускает генераторы)
+  auto_route_generator: ^10.2.6 # Генератор маршрутов для auto_route
+  injectable_generator: ^2.9.1  # Генератор DI-контейнера для injectable
+  json_serializable: ^6.11.1    # Генератор JSON сериализации
+
+  # ========== RECOMMENDED ADDITION ==========
+  # hive_generator: ^2.0.1      # Генератор адаптеров для Hive (раскомментировать при необходимости)
+
+flutter:
+  uses-material-design: true    # Подключает Material Design иконки
