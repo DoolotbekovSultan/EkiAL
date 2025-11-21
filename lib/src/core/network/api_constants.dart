@@ -2,40 +2,64 @@
 // 📋 API CONSTANTS - КОНСТАНТЫ СЕТЕВОГО СЛОЯ
 // ================================
 
+import 'package:eki_al/src/app/config/app_config.dart';
+
 /// 🎯 КОНСТАНТЫ ДЛЯ СЕТЕВЫХ ЗАПРОСОВ
 ///
-/// Содержит настройки для HTTP клиента, URL, таймауты
+/// ## 📖 ОПИСАНИЕ:
+/// Содержит настройки для HTTP клиента, URL, таймауты, заголовки и статус коды.
+/// Все значения динамически получаются из `AppConfig` для обеспечения
+/// корректной работы в разных окружениях (dev, staging, prod).
+///
+/// ## 📁 СТРУКТУРА:
+/// - Базовые настройки (baseUrl из AppConfig)
+/// - Таймауты (connectTimeout, receiveTimeout, sendTimeout)
+/// - Заголовки по умолчанию (defaultHeaders, multipartHeaders)
+/// - Аутентификация (authHeaderKey, bearerPrefix, apiKeyHeader)
+/// - Статус коды HTTP (successStatusCodes, authErrorStatusCodes, etc.)
+/// - Настройки повтора запросов (maxRetryAttempts, retryDelay)
+/// - Пути API (apiV1Path, authPath, usersPath, etc.)
+/// - Дополнительные настройки (enableRequestLogging, maxFileSizeBytes)
+///
+/// ## 🎯 ИСПОЛЬЗОВАНИЕ:
+/// ```dart
+/// final dio = Dio(BaseOptions(
+///   baseUrl: ApiConstants.baseUrl,
+///   connectTimeout: ApiConstants.connectTimeout,
+///   headers: ApiConstants.defaultHeaders,
+/// ));
+///
+/// if (ApiConstants.successStatusCodes.contains(statusCode)) {
+///   // обработка успешного ответа
+/// }
+/// ```
+///
+/// ## 🔗 СВЯЗАННЫЕ МОДУЛИ:
+/// - `app/config/app_config.dart` - источник базового URL и настроек
+/// - `core/constrants/api_endpints.dart` - использует baseUrl для эндпоинтов
+/// - `core/network/dio_client.dart` - использует константы для настройки Dio
 class ApiConstants {
+  static AppConfig get _config => AppConfig();
+
   // ================================
-  // 🌐 БАЗОВЫЕ URL
+  // 🌐 БАЗОВЫЕ НАСТРОЙКИ
   // ================================
 
-  /// Базовый URL для development окружения
-  static const String devBaseUrl = 'https://api.dev.eki-al.com';
-
-  /// Базовый URL для production окружения
-  static const String prodBaseUrl = 'https://api.prod.eki-al.com';
-
-  /// Базовый URL для staging окружения
-  static const String stagingBaseUrl = 'https://api.staging.eki-al.com';
-
-  /// Получение базового URL в зависимости от окружения
-  static String get baseUrl {
-    return const String.fromEnvironment('BASE_URL', defaultValue: devBaseUrl);
-  }
+  /// Базовый URL зависит от активной конфигурации приложения
+  static String get baseUrl => _config.baseUrl;
 
   // ================================
   // ⏰ ТАЙМАУТЫ
   // ================================
 
-  /// Таймаут установки соединения
-  static const Duration connectTimeout = Duration(seconds: 30);
+  /// Таймауты основаны на настройках AppConfig (указываются в миллисекундах)
+  static Duration get connectTimeout =>
+      Duration(milliseconds: _config.apiTimeout);
 
-  /// Таймаут получения ответа
-  static const Duration receiveTimeout = Duration(seconds: 30);
+  static Duration get receiveTimeout =>
+      Duration(milliseconds: _config.apiTimeout);
 
-  /// Таймаут отправки данных
-  static const Duration sendTimeout = Duration(seconds: 30);
+  static Duration get sendTimeout => Duration(milliseconds: _config.apiTimeout);
 
   // ================================
   // 📄 ЗАГОЛОВКИ ПО УМОЛЧАНИЮ
@@ -119,11 +143,10 @@ class ApiConstants {
   // 🛠️ ДОПОЛНИТЕЛЬНЫЕ НАСТРОЙКИ
   // ================================
 
-  /// Включение логирования запросов (только для dev)
-  static const bool enableRequestLogging = true;
+  /// Включение логирования запросов/ответов (true в debug окружении)
+  static bool get enableRequestLogging => _config.isDebug;
 
-  /// Включение логирования ответов (только для dev)
-  static const bool enableResponseLogging = true;
+  static bool get enableResponseLogging => _config.isDebug;
 
   /// Максимальный размер файла для загрузки (10 MB)
   static const int maxFileSizeBytes = 10 * 1024 * 1024;

@@ -1,27 +1,32 @@
+// ================================
+// 🌐 API ENDPOINTS - ЭНДПОИНТЫ И СЕТЕВЫЕ КОНСТАНТЫ
+// ================================
+
+import 'package:eki_al/src/core/network/api_constants.dart';
+
 /// 🌐 API ЭНДПОИНТЫ И СЕТЕВЫЕ КОНСТАНТЫ
 ///
-/// Содержит URL, заголовки и статус коды HTTP
-/// ВНИМАНИЕ: Замените базовые URL на актуальные для вашего проекта
+/// ## 📖 ОПИСАНИЕ:
+/// Содержит относительные пути API, HTTP заголовки и статус коды.
+/// Базовый URL берется из `AppConfig` через `ApiConstants.baseUrl`,
+/// чтобы избежать дублирования настроек окружений.
+///
+/// ## 📁 СТРУКТУРА:
+/// - `ApiEndpoints` - относительные пути к API методам
+/// - `ApiHeaders` - HTTP заголовки и их значения
+/// - `HttpStatusCodes` - стандартные статус коды HTTP
+///
+/// ## 🎯 ИСПОЛЬЗОВАНИЕ:
+/// ```dart
+/// final loginUrl = ApiEndpoints.login;
+/// final profileUrl = ApiEndpoints.userProfile;
+/// final userUrl = ApiEndpoints.resourceById('users', '123');
+/// headers[ApiHeaders.authorization] = 'Bearer $token';
+/// if (statusCode == HttpStatusCodes.success) { ... }
+/// ```
 abstract class ApiEndpoints {
-  // ================================
-  // 🎯 БАЗОВЫЕ URL ДЛЯ РАЗНЫХ ОКРУЖЕНИЙ
-  // ================================
-
-  // TODO: 🚨 ЗАМЕНИТЬ НА РЕАЛЬНЫЕ URL ВАШЕГО ПРОЕКТА
-
-  /// Базовый URL для development окружения
-  static const String devBaseUrl = 'https://dev-api.yourapp.com';
-
-  /// Базовый URL для staging окружения
-  static const String stagingBaseUrl = 'https://staging-api.yourapp.com';
-
-  /// Базовый URL для production окружения
-  static const String prodBaseUrl = 'https://api.yourapp.com';
-
   /// Текущий базовый URL приложения
-
-  /// TODO: 🎯 ВЫБРАТЬ НУЖНОЕ ОКРУЖЕНИЕ (dev/staging/prod)
-  static String get baseUrl => devBaseUrl;
+  static String get baseUrl => ApiConstants.baseUrl;
 
   // ================================
   // 🔐 ЭНДПОИНТЫ АУТЕНТИФИКАЦИИ
@@ -81,6 +86,15 @@ abstract class ApiEndpoints {
 }
 
 /// 📨 ЗАГОЛОВКИ HTTP ЗАПРОСОВ
+///
+/// ## 📖 ОПИСАНИЕ:
+/// Стандартные HTTP заголовки и их значения для использования в сетевых запросах.
+///
+/// ## 🎯 ИСПОЛЬЗОВАНИЕ:
+/// ```dart
+/// headers[ApiHeaders.authorization] = 'Bearer $token';
+/// headers[ApiHeaders.contentType] = ApiHeaders.jsonContentType;
+/// ```
 abstract class ApiHeaders {
   /// Заголовок типа контента
   static const String contentType = 'Content-Type';
@@ -102,6 +116,18 @@ abstract class ApiHeaders {
 }
 
 /// 📊 HTTP СТАТУС КОДЫ
+///
+/// ## 📖 ОПИСАНИЕ:
+/// Стандартные HTTP статус коды для проверки ответов сервера.
+///
+/// ## 🎯 ИСПОЛЬЗОВАНИЕ:
+/// ```dart
+/// if (response.statusCode == HttpStatusCodes.success) {
+///   // обработка успешного ответа
+/// } else if (response.statusCode == HttpStatusCodes.unauthorized) {
+///   // обработка ошибки авторизации
+/// }
+/// ```
 abstract class HttpStatusCodes {
   /// Успешный запрос
   static const int success = 200;

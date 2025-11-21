@@ -7,6 +7,7 @@ import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
+import '../../app/config/app_config.dart';
 import '../utils/log_utils.dart';
 
 /// Главный модуль зависимостей приложения
@@ -19,12 +20,13 @@ abstract class AppModule {
   /// HTTP клиент для сетевых запросов
   @singleton
   Dio get dio {
+    final config = AppConfig();
     final dio = Dio(
       BaseOptions(
-        baseUrl: _getBaseUrl(),
-        connectTimeout: const Duration(seconds: 30),
-        receiveTimeout: const Duration(seconds: 30),
-        sendTimeout: const Duration(seconds: 30),
+        baseUrl: config.baseUrl,
+        connectTimeout: Duration(milliseconds: config.apiTimeout),
+        receiveTimeout: Duration(milliseconds: config.apiTimeout),
+        sendTimeout: Duration(milliseconds: config.apiTimeout),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -35,9 +37,9 @@ abstract class AppModule {
     // Добавляем интерцепторы
     dio.interceptors.add(
       LogInterceptor(
-        request: true,
-        requestBody: true,
-        responseBody: true,
+        request: config.isDebug,
+        requestBody: config.isDebug,
+        responseBody: config.isDebug,
         error: true,
         logPrint: (object) {
           // Используем простой логирование вместо Log.network
@@ -71,43 +73,7 @@ abstract class AppModule {
   // ================================
 
   /// Базовый URL API (зависит от окружения)
-  @Named("baseUrl")
-  @dev
-  String get devBaseUrl => 'https://api.dev.eki-al.com';
-
-  @Named("baseUrl")
-  @prod
-  String get prodBaseUrl => 'https://api.eki-al.com';
-
-  /// Таймауты для разных окружений
-  @Named("connectTimeout")
-  @dev
-  int get devConnectTimeout => 30000; // 30 секунд
-
-  @Named("connectTimeout")
-  @prod
-  int get prodConnectTimeout => 15000; // 15 секунд
-
-  /// Включение логирования
-  @Named("enableLogging")
-  @dev
-  bool get devEnableLogging => true;
-
-  @Named("enableLogging")
-  @prod
-  bool get prodEnableLogging => false;
-
-  // ================================
-  // 🔧 ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ
-  // ================================
-
-  /// Получает базовый URL в зависимости от окружения
-  String _getBaseUrl() {
-    return const String.fromEnvironment(
-      'BASE_URL',
-      defaultValue: 'https://api.dev.eki-al.com',
-    );
-  }
+  // Поставляется AppConfig, поэтому дополнительные биндинги не требуются.
 
   /// Получает API ключ из environment variables
   @Named("apiKey")
