@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
+import '../utils/log_utils.dart';
 
 /// ⚠️ Сервис отчетов об ошибках и crash reporting
 ///
@@ -187,7 +187,6 @@ abstract class CrashReportingService {
 /// - ✅ Graceful degradation
 
 class UniversalCrashReportingService implements CrashReportingService {
-  final Logger _logger;
   final List<CrashReportingProvider> _providers = [];
   bool _isInitialized = false;
 
@@ -207,18 +206,15 @@ class UniversalCrashReportingService implements CrashReportingService {
 
   /// СОЗДАНИЕ ЭКЗЕМПЛЯРА СЕРВИСА
   UniversalCrashReportingService({
-    Logger? logger,
     List<CrashReportingProvider> providers = const [],
-  }) : _logger = logger ?? Logger() {
+  }) {
     _providers.addAll(providers);
   }
 
   /// ДОБАВЛЕНИЕ НОВОГО ПРОВАЙДЕРА
   void addProvider(CrashReportingProvider provider) {
     _providers.add(provider);
-    _logger.d(
-      '➕ Добавлен провайдер отчетов об ошибках: ${provider.runtimeType}',
-    );
+    Log.d('➕ Добавлен провайдер отчетов об ошибках: ${provider.runtimeType}');
   }
 
   @override
@@ -228,9 +224,9 @@ class UniversalCrashReportingService implements CrashReportingService {
         await provider.initialize();
       }
       _isInitialized = true;
-      _logger.i('🎯 Universal Crash Reporting Service инициализирован');
+      Log.i('🎯 Universal Crash Reporting Service инициализирован');
     } catch (error, stackTrace) {
-      _logger.e(
+      Log.e(
         '❌ Ошибка инициализации Crash Reporting Service',
         error: error,
         stackTrace: stackTrace,
@@ -251,13 +247,9 @@ class UniversalCrashReportingService implements CrashReportingService {
         provider.recordError(error, stackTrace, context: safeContext);
       }
 
-      _logger.d('⚠️ Отчет об ошибке отправлен: ${error.toString()}');
+      Log.d('⚠️ Отчет об ошибке отправлен: ${error.toString()}');
     } catch (e, st) {
-      _logger.e(
-        '❌ Ошибка при отправке отчета об ошибке',
-        error: e,
-        stackTrace: st,
-      );
+      Log.e('❌ Ошибка при отправке отчета об ошибке', error: e, stackTrace: st);
     }
   }
 
@@ -270,13 +262,9 @@ class UniversalCrashReportingService implements CrashReportingService {
         provider.recordFlutterError(details);
       }
 
-      _logger.d('🎯 Flutter ошибка обработана: ${details.exception}');
+      Log.d('🎯 Flutter ошибка обработана: ${details.exception}');
     } catch (e, st) {
-      _logger.e(
-        '❌ Ошибка при обработке Flutter ошибки',
-        error: e,
-        stackTrace: st,
-      );
+      Log.e('❌ Ошибка при обработке Flutter ошибки', error: e, stackTrace: st);
     }
   }
 
@@ -300,13 +288,9 @@ class UniversalCrashReportingService implements CrashReportingService {
         );
       }
 
-      _logger.d('🌐 Сетевая ошибка зафиксирована: ${error.toString()}');
+      Log.d('🌐 Сетевая ошибка зафиксирована: ${error.toString()}');
     } catch (e, st) {
-      _logger.e(
-        '❌ Ошибка при фиксации сетевой ошибки',
-        error: e,
-        stackTrace: st,
-      );
+      Log.e('❌ Ошибка при фиксации сетевой ошибки', error: e, stackTrace: st);
     }
   }
 
@@ -321,9 +305,9 @@ class UniversalCrashReportingService implements CrashReportingService {
         provider.setUserContext(userId, safeUserData);
       }
 
-      _logger.d('👤 Контекст пользователя установлен: $userId');
+      Log.d('👤 Контекст пользователя установлен: $userId');
     } catch (e, st) {
-      _logger.e(
+      Log.e(
         '❌ Ошибка установки контекста пользователя',
         error: e,
         stackTrace: st,
@@ -342,9 +326,9 @@ class UniversalCrashReportingService implements CrashReportingService {
         provider.setAppContext(safeAppContext);
       }
 
-      _logger.d('📱 Контекст приложения установлен');
+      Log.d('📱 Контекст приложения установлен');
     } catch (e, st) {
-      _logger.e(
+      Log.e(
         '❌ Ошибка установки контекста приложения',
         error: e,
         stackTrace: st,
@@ -367,9 +351,9 @@ class UniversalCrashReportingService implements CrashReportingService {
         provider.addBreadcrumb(message, category: category, data: safeData);
       }
 
-      _logger.d('🍞 Хлебная крошка добавлена: $message');
+      Log.d('🍞 Хлебная крошка добавлена: $message');
     } catch (e, st) {
-      _logger.e('❌ Ошибка добавления хлебной крошки', error: e, stackTrace: st);
+      Log.e('❌ Ошибка добавления хлебной крошки', error: e, stackTrace: st);
     }
   }
 
@@ -382,11 +366,11 @@ class UniversalCrashReportingService implements CrashReportingService {
         final transaction = provider.startTransaction(name, operation);
         transactions.add(transaction);
       } catch (e, st) {
-        _logger.e('❌ Ошибка начала транзакции', error: e, stackTrace: st);
+        Log.e('❌ Ошибка начала транзакции', error: e, stackTrace: st);
       }
     }
 
-    _logger.d('⏱️ Транзакция начата: $name ($operation)');
+    Log.d('⏱️ Транзакция начата: $name ($operation)');
     return transactions;
   }
 
@@ -397,12 +381,12 @@ class UniversalCrashReportingService implements CrashReportingService {
         try {
           _providers[i].finishTransaction(transaction[i]);
         } catch (e, st) {
-          _logger.e('❌ Ошибка завершения транзакции', error: e, stackTrace: st);
+          Log.e('❌ Ошибка завершения транзакции', error: e, stackTrace: st);
         }
       }
     }
 
-    _logger.d('✅ Транзакция завершена');
+    Log.d('✅ Транзакция завершена');
   }
 
   @override
@@ -411,7 +395,7 @@ class UniversalCrashReportingService implements CrashReportingService {
       await provider.dispose();
     }
     _isInitialized = false;
-    _logger.i('🔚 Universal Crash Reporting Service остановлен');
+    Log.i('🔚 Universal Crash Reporting Service остановлен');
   }
 
   /// 🔒 ФИЛЬТРАЦИЯ КОНФИДЕНЦИАЛЬНЫХ ДАННЫХ
@@ -455,26 +439,19 @@ abstract class CrashReportingProvider {
 
 /// 🪵 ПРОВАЙДЕР ДЛЯ ЛОГИРОВАНИЯ В КОНСОЛЬ
 class ConsoleCrashReportingProvider implements CrashReportingProvider {
-  final Logger _logger;
-
-  ConsoleCrashReportingProvider({Logger? logger})
-    : _logger = logger ?? Logger();
-
   @override
   Future<void> initialize() async {
-    _logger.i('🪵 Console Crash Reporting Provider инициализирован');
+    Log.i('🪵 Console Crash Reporting Provider инициализирован');
   }
 
   @override
   void recordError(dynamic error, StackTrace stackTrace, {String? context}) {
-    _logger.e(
-      '⚠️ [CRASH] Error: $error\nContext: $context\nStack: $stackTrace',
-    );
+    Log.e('⚠️ [CRASH] Error: $error\nContext: $context\nStack: $stackTrace');
   }
 
   @override
   void recordFlutterError(FlutterErrorDetails details) {
-    _logger.e(
+    Log.e(
       '🎯 [CRASH] Flutter Error: ${details.exception}\nStack: ${details.stack}',
     );
   }
@@ -485,19 +462,19 @@ class ConsoleCrashReportingProvider implements CrashReportingProvider {
     required Map<String, dynamic> request,
     Map<String, dynamic>? response,
   }) {
-    _logger.e(
+    Log.e(
       '🌐 [CRASH] Network Error: $error\nRequest: $request\nResponse: $response',
     );
   }
 
   @override
   void setUserContext(String? userId, Map<String, dynamic>? userData) {
-    _logger.d('👤 [CRASH] User Context: $userId, Data: $userData');
+    Log.d('👤 [CRASH] User Context: $userId, Data: $userData');
   }
 
   @override
   void setAppContext(Map<String, dynamic> appContext) {
-    _logger.d('📱 [CRASH] App Context: $appContext');
+    Log.d('📱 [CRASH] App Context: $appContext');
   }
 
   @override
@@ -506,41 +483,38 @@ class ConsoleCrashReportingProvider implements CrashReportingProvider {
     String? category,
     Map<String, dynamic>? data,
   }) {
-    _logger.d(
-      '🍞 [CRASH] Breadcrumb: $message, Category: $category, Data: $data',
-    );
+    Log.d('🍞 [CRASH] Breadcrumb: $message, Category: $category, Data: $data');
   }
 
   @override
   Object startTransaction(String name, String operation) {
-    _logger.d('⏱️ [CRASH] Transaction Started: $name ($operation)');
+    Log.d('⏱️ [CRASH] Transaction Started: $name ($operation)');
     return name;
   }
 
   @override
   void finishTransaction(Object transaction) {
-    _logger.d('✅ [CRASH] Transaction Finished: $transaction');
+    Log.d('✅ [CRASH] Transaction Finished: $transaction');
   }
 
   @override
   Future<void> dispose() async {
-    _logger.i('🔚 Console Crash Reporting Provider остановлен');
+    Log.i('🔚 Console Crash Reporting Provider остановлен');
   }
 }
 
 /// 🧪 MOCK ПРОВАЙДЕР ДЛЯ ТЕСТИРОВАНИЯ
 class MockCrashReportingProvider implements CrashReportingProvider {
   final List<Map<String, dynamic>> _reports = [];
-  final Logger _logger;
 
-  MockCrashReportingProvider({Logger? logger}) : _logger = logger ?? Logger();
+  MockCrashReportingProvider();
 
   List<Map<String, dynamic>> get reports => List.unmodifiable(_reports);
   void clearReports() => _reports.clear();
 
   @override
   Future<void> initialize() async {
-    _logger.i('🧪 Mock Crash Reporting Provider инициализирован');
+    Log.i('🧪 Mock Crash Reporting Provider инициализирован');
   }
 
   @override
@@ -638,6 +612,6 @@ class MockCrashReportingProvider implements CrashReportingProvider {
   @override
   Future<void> dispose() async {
     _reports.clear();
-    _logger.i('🔚 Mock Crash Reporting Provider остановлен');
+    Log.i('🔚 Mock Crash Reporting Provider остановлен');
   }
 }

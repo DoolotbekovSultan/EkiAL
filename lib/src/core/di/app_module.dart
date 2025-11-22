@@ -7,7 +7,7 @@ import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
-import '../../app/config/app_config.dart';
+import '../config/app_config.dart';
 import '../utils/log_utils.dart';
 
 /// Главный модуль зависимостей приложения
@@ -18,9 +18,13 @@ abstract class AppModule {
   // ================================
 
   /// HTTP клиент для сетевых запросов
+  ///
+  /// Создает и настраивает единый экземпляр Dio для всего приложения.
+  /// Все интерцепторы добавляются здесь для обеспечения единообразия.
   @singleton
   Dio get dio {
-    final config = AppConfig();
+    // ✅ Используем singleton AppConfig
+    final config = AppConfig.current;
     final dio = Dio(
       BaseOptions(
         baseUrl: config.baseUrl,
@@ -34,7 +38,9 @@ abstract class AppModule {
       ),
     );
 
-    // Добавляем интерцепторы
+    // Добавляем базовые интерцепторы
+    // Примечание: AuthInterceptor и RetryInterceptor добавляются через
+    // DioInterceptorConfigurator.configureInterceptors() после инициализации DI
     dio.interceptors.add(
       LogInterceptor(
         request: config.isDebug,
@@ -64,9 +70,8 @@ abstract class AppModule {
   // 🛠️ СЕРВИСЫ ПРИЛОЖЕНИЯ
   // ================================
 
-  /// Логгер приложения
-  @singleton
-  Log get logger => Log();
+  // Примечание: Log - статический класс, не требует регистрации в DI
+  // Используйте напрямую: Log.i('message'), Log.d('message'), etc.
 
   // ================================
   // ⚙️ КОНФИГУРАЦИИ

@@ -1,5 +1,5 @@
 import 'package:get_it/get_it.dart';
-import 'package:logger/logger.dart';
+import '../utils/log_utils.dart';
 import 'analytics_service.dart';
 import 'crash_reporting_service.dart';
 import 'performance_monitor.dart';
@@ -19,16 +19,13 @@ import 'performance_monitor.dart';
 
 class MonitoringModule {
   final GetIt _serviceLocator;
-  final Logger _logger;
 
   /// СОЗДАНИЕ МОДУЛЯ МОНИТОРИНГА
   ///
   /// 📝 **Параметры:**
   /// - `serviceLocator`: Экземпляр GetIt для регистрации зависимостей
-  /// - `logger`: Логгер для модуля (опционально)
-  MonitoringModule({required GetIt serviceLocator, Logger? logger})
-    : _serviceLocator = serviceLocator,
-      _logger = logger ?? Logger();
+  MonitoringModule({required GetIt serviceLocator})
+    : _serviceLocator = serviceLocator;
 
   /// ИНИЦИАЛИЗАЦИЯ МОДУЛЯ МОНИТОРИНГА
   ///
@@ -40,7 +37,7 @@ class MonitoringModule {
   /// - CrashReportingService (универсальный с консольным провайдером)
   /// - PerformanceMonitor (универсальный с консольным провайдером)
   Future<void> initialize() async {
-    _logger.i('🎛️ Инициализация Monitoring Module');
+    Log.i('🎛️ Инициализация Monitoring Module');
 
     // Регистрация сервиса аналитики
     _registerAnalyticsService();
@@ -51,20 +48,19 @@ class MonitoringModule {
     // Регистрация сервиса мониторинга производительности
     _registerPerformanceMonitor();
 
-    _logger.i('🎛️ Monitoring Module успешно инициализирован');
+    Log.i('🎛️ Monitoring Module успешно инициализирован');
   }
 
   /// РЕГИСТРАЦИЯ СЕРВИСА АНАЛИТИКИ
   void _registerAnalyticsService() {
     if (_serviceLocator.isRegistered<AnalyticsService>()) {
-      _logger.w('⚠️ AnalyticsService уже зарегистрирован, пропускаем');
+      Log.w('⚠️ AnalyticsService уже зарегистрирован, пропускаем');
       return;
     }
 
     final analyticsService = UniversalAnalyticsService(
-      logger: _logger,
       providers: [
-        ConsoleAnalyticsProvider(logger: _logger),
+        ConsoleAnalyticsProvider(),
         // Для продакшена можно добавить:
         // FirebaseAnalyticsProvider(),
         // SentryAnalyticsProvider(),
@@ -75,20 +71,19 @@ class MonitoringModule {
       () => analyticsService,
     );
 
-    _logger.d('📊 AnalyticsService зарегистрирован в DI');
+    Log.d('📊 AnalyticsService зарегистрирован в DI');
   }
 
   /// РЕГИСТРАЦИЯ СЕРВИСА ОТЧЕТОВ ОБ ОШИБКАХ
   void _registerCrashReportingService() {
     if (_serviceLocator.isRegistered<CrashReportingService>()) {
-      _logger.w('⚠️ CrashReportingService уже зарегистрирован, пропускаем');
+      Log.w('⚠️ CrashReportingService уже зарегистрирован, пропускаем');
       return;
     }
 
     final crashReportingService = UniversalCrashReportingService(
-      logger: _logger,
       providers: [
-        ConsoleCrashReportingProvider(logger: _logger),
+        ConsoleCrashReportingProvider(),
         // Для продакшена можно добавить:
         // SentryCrashReportingProvider(),
         // FirebaseCrashlyticsProvider(),
@@ -99,20 +94,19 @@ class MonitoringModule {
       () => crashReportingService,
     );
 
-    _logger.d('⚠️ CrashReportingService зарегистрирован в DI');
+    Log.d('⚠️ CrashReportingService зарегистрирован в DI');
   }
 
   /// РЕГИСТРАЦИЯ СЕРВИСА МОНИТОРИНГА ПРОИЗВОДИТЕЛЬНОСТИ
   void _registerPerformanceMonitor() {
     if (_serviceLocator.isRegistered<PerformanceMonitor>()) {
-      _logger.w('⚠️ PerformanceMonitor уже зарегистрирован, пропускаем');
+      Log.w('⚠️ PerformanceMonitor уже зарегистрирован, пропускаем');
       return;
     }
 
     final performanceMonitor = UniversalPerformanceMonitor(
-      logger: _logger,
       providers: [
-        ConsolePerformanceMonitorProvider(logger: _logger),
+        ConsolePerformanceMonitorProvider(),
         // Для продакшена можно добавить:
         // FirebasePerformanceMonitorProvider(),
         // NewRelicPerformanceMonitorProvider(),
@@ -123,7 +117,7 @@ class MonitoringModule {
       () => performanceMonitor,
     );
 
-    _logger.d('⚡ PerformanceMonitor зарегистрирован в DI');
+    Log.d('⚡ PerformanceMonitor зарегистрирован в DI');
   }
 
   /// ЗАПУСК ВСЕХ СЕРВИСОВ МОНИТОРИНГА
@@ -133,7 +127,7 @@ class MonitoringModule {
   ///
   /// 🕐 **Вызывается:** после регистрации всех зависимостей
   Future<void> startAllServices() async {
-    _logger.i('🚀 Запуск всех сервисов мониторинга');
+    Log.i('🚀 Запуск всех сервисов мониторинга');
 
     try {
       final analyticsService = _serviceLocator<AnalyticsService>();
@@ -145,9 +139,9 @@ class MonitoringModule {
       final performanceMonitor = _serviceLocator<PerformanceMonitor>();
       await performanceMonitor.initialize();
 
-      _logger.i('✅ Все сервисы мониторинга успешно запущены');
+      Log.i('✅ Все сервисы мониторинга успешно запущены');
     } catch (error, stackTrace) {
-      _logger.e(
+      Log.e(
         '❌ Ошибка запуска сервисов мониторинга',
         error: error,
         stackTrace: stackTrace,
@@ -163,7 +157,7 @@ class MonitoringModule {
   ///
   /// 🕐 **Вызывается:** при завершении работы приложения
   Future<void> stopAllServices() async {
-    _logger.i('🛑 Остановка всех сервисов мониторинга');
+    Log.i('🛑 Остановка всех сервисов мониторинга');
 
     try {
       final analyticsService = _serviceLocator<AnalyticsService>();
@@ -175,9 +169,9 @@ class MonitoringModule {
       final performanceMonitor = _serviceLocator<PerformanceMonitor>();
       await performanceMonitor.dispose();
 
-      _logger.i('✅ Все сервисы мониторинга успешно остановлены');
+      Log.i('✅ Все сервисы мониторинга успешно остановлены');
     } catch (error, stackTrace) {
-      _logger.e(
+      Log.e(
         '❌ Ошибка остановки сервисов мониторинга',
         error: error,
         stackTrace: stackTrace,
@@ -197,7 +191,7 @@ class MonitoringModule {
     required String environment,
     required MonitoringConfig config,
   }) {
-    _logger.i('🎚️ Конфигурация мониторинга для окружения: $environment');
+    Log.i('🎚️ Конфигурация мониторинга для окружения: $environment');
 
     // Настройка уровней логирования
     _configureLoggingLevel(environment);
@@ -205,7 +199,7 @@ class MonitoringModule {
     // Настройка функций мониторинга
     _configureMonitoringFeatures(environment, config);
 
-    _logger.d('🎚️ Мониторинг сконфигурирован для $environment');
+    Log.d('🎚️ Мониторинг сконфигурирован для $environment');
   }
 
   /// НАСТРОЙКА УРОВНЕЙ ЛОГИРОВАНИЯ
@@ -213,18 +207,18 @@ class MonitoringModule {
     switch (environment) {
       case 'development':
         // Подробное логирование в разработке
-        _logger.d('🔍 Уровень логирования: VERBOSE (development)');
+        Log.d('🔍 Уровень логирования: VERBOSE (development)');
         break;
       case 'staging':
         // Средний уровень в staging
-        _logger.d('📝 Уровень логирования: INFO (staging)');
+        Log.d('📝 Уровень логирования: INFO (staging)');
         break;
       case 'production':
         // Минимальное логирование в production
-        _logger.d('🚀 Уровень логирования: WARNING (production)');
+        Log.d('🚀 Уровень логирования: WARNING (production)');
         break;
       default:
-        _logger.d('⚡ Уровень логирования по умолчанию');
+        Log.d('⚡ Уровень логирования по умолчанию');
     }
   }
 
@@ -233,8 +227,6 @@ class MonitoringModule {
     String environment,
     MonitoringConfig config,
   ) {
-    final analyticsService = _serviceLocator<AnalyticsService>();
-    final crashReportingService = _serviceLocator<CrashReportingService>();
     final performanceMonitor = _serviceLocator<PerformanceMonitor>();
 
     // Настройка порогов производительности
@@ -246,7 +238,7 @@ class MonitoringModule {
       });
     }
 
-    _logger.d('⚙️ Функции мониторинга сконфигурированы для $environment');
+    Log.d('⚙️ Функции мониторинга сконфигурированы для $environment');
   }
 
   /// ПОЛУЧЕНИЕ СТАТУСА СЕРВИСОВ МОНИТОРИНГА

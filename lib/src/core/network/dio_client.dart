@@ -3,15 +3,31 @@
 // ================================
 
 import 'package:dio/dio.dart';
+import 'package:injectable/injectable.dart';
 import 'package:eki_al/src/core/network/interceptors/logging_interceptor.dart';
 
 import 'api_constants.dart';
 import '../utils/log_utils.dart';
 
+/// 🎯 ОБЕРТКА НАД DIO КЛИЕНТОМ
+///
+/// Этот класс предоставляет удобный интерфейс для работы с Dio,
+/// получая уже сконфигурированный экземпляр через Dependency Injection.
+///
+/// ## Архитектурные принципы:
+/// - ✅ Получает Dio через DI (не создает новый)
+/// - ✅ Использует единый источник истины для сетевого клиента
+/// - ✅ Добавляет только специфичные для DioClient интерцепторы
+/// - ✅ Основные интерцепторы уже добавлены в app_module
+@injectable
 class DioClient {
   final Dio _dio;
 
-  DioClient() : _dio = Dio(_createOptions()) {
+  /// Создание DioClient с внедренным Dio клиентом
+  ///
+  /// 📝 **Параметры:**
+  /// - `dio`: Dio клиент из DI (уже сконфигурирован в app_module)
+  DioClient({required Dio dio}) : _dio = dio {
     _addInterceptors();
     Log.i(
       '🌐 DioClient инициализирован',
@@ -19,33 +35,22 @@ class DioClient {
     );
   }
 
-  static BaseOptions _createOptions() {
-    return BaseOptions(
-      baseUrl: ApiConstants.baseUrl,
-      connectTimeout: ApiConstants.connectTimeout,
-      receiveTimeout: ApiConstants.receiveTimeout,
-      sendTimeout: ApiConstants.sendTimeout,
-      headers: ApiConstants.defaultHeaders,
-      responseType: ResponseType.json,
-      contentType: Headers.jsonContentType,
-      validateStatus: (status) => status != null && status < 600,
-    );
+  /// Добавление специфичных для DioClient интерцепторов
+  ///
+  /// Примечание: Основные интерцепторы (AuthInterceptor, RetryInterceptor)
+  /// уже добавлены в app_module.dart при создании Dio
+  void _addInterceptors() {
+    // Добавляем только LoggingInterceptor, так как он специфичен для DioClient
+    // Остальные интерцепторы уже добавлены в app_module
+    if (!_hasInterceptor<LoggingInterceptor>()) {
+      _dio.interceptors.add(LoggingInterceptor());
+      Log.d('🔧 Добавлен LoggingInterceptor');
+    }
   }
 
-  void _addInterceptors() {
-    _dio.interceptors.addAll([
-      LoggingInterceptor(), // Наш кастомный интерцептор
-      LogInterceptor(
-        request: ApiConstants.enableRequestLogging,
-        requestHeader: ApiConstants.enableRequestLogging,
-        requestBody: ApiConstants.enableRequestLogging,
-        responseHeader: ApiConstants.enableResponseLogging,
-        responseBody: ApiConstants.enableResponseLogging,
-        error: true,
-        logPrint: (object) => Log.d('🌐 Dio: $object'),
-      ),
-    ]);
-    Log.d('🔧 Добавлено интерцепторов: ${_dio.interceptors.length}');
+  /// Проверяет наличие интерцептора определенного типа
+  bool _hasInterceptor<T>() {
+    return _dio.interceptors.any((interceptor) => interceptor is T);
   }
 
   // ================================

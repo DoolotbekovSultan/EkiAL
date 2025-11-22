@@ -2,7 +2,7 @@
 // 📋 API CONSTANTS - КОНСТАНТЫ СЕТЕВОГО СЛОЯ
 // ================================
 
-import 'package:eki_al/src/app/config/app_config.dart';
+import '../config/app_config.dart';
 
 /// 🎯 КОНСТАНТЫ ДЛЯ СЕТЕВЫХ ЗАПРОСОВ
 ///
@@ -39,7 +39,8 @@ import 'package:eki_al/src/app/config/app_config.dart';
 /// - `core/constrants/api_endpints.dart` - использует baseUrl для эндпоинтов
 /// - `core/network/dio_client.dart` - использует константы для настройки Dio
 class ApiConstants {
-  static AppConfig get _config => AppConfig();
+  // ✅ Используем singleton AppConfig для единообразия
+  static AppConfig get _config => AppConfig.current;
 
   // ================================
   // 🌐 БАЗОВЫЕ НАСТРОЙКИ

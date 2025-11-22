@@ -3,7 +3,7 @@
 // ================================
 
 import 'app_config.dart';
-import '../../core/utils/log_utils.dart';
+import '../utils/log_utils.dart';
 
 /// 🎯 КОНФИГУРАЦИЯ ДЛЯ DEVELOPMENT ОКРУЖЕНИЯ
 ///

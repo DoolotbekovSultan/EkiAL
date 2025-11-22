@@ -20,7 +20,14 @@ import '../../utils/log_utils.dart';
 /// - Повтор только для безопасных методов (GET)
 /// - Ограничение максимального количества попыток
 class RetryInterceptor extends Interceptor {
+  final Dio _dio;
   final Map<String, int> _retryCounts = {};
+
+  /// Создание интерцептора повтора запросов
+  ///
+  /// 📝 **Параметры:**
+  /// - `dio`: Dio клиент для повторных запросов (должен быть из DI)
+  RetryInterceptor({required Dio dio}) : _dio = dio;
 
   @override
   Future<void> onError(
@@ -53,9 +60,8 @@ class RetryInterceptor extends Interceptor {
     await Future.delayed(delay);
 
     try {
-      // Повторяем запрос
-      final dio = Dio();
-      final response = await dio.fetch<dynamic>(requestOptions);
+      // ✅ Используем существующий Dio клиент из DI
+      final response = await _dio.fetch<dynamic>(requestOptions);
       handler.resolve(response);
     } catch (retryError) {
       // Если повторная попытка не удалась

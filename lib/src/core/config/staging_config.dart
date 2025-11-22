@@ -2,9 +2,8 @@
 // 🧪 STAGING CONFIG - STAGING КОНФИГУРАЦИЯ
 // ================================
 
-import 'package:eki_al/src/core/utils/log_utils.dart';
-
 import 'app_config.dart';
+import '../utils/log_utils.dart';
 
 /// 🎯 КОНФИГУРАЦИЯ ДЛЯ STAGING ОКРУЖЕНИЯ
 ///

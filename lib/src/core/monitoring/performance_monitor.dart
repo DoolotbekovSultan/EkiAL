@@ -1,4 +1,4 @@
-import 'package:logger/logger.dart';
+import '../utils/log_utils.dart';
 
 /// ⚡ Сервис мониторинга производительности приложения
 ///
@@ -212,7 +212,6 @@ abstract class PerformanceMonitor {
 /// - ✅ Интеграция с аналитическими системами
 
 class UniversalPerformanceMonitor implements PerformanceMonitor {
-  final Logger _logger;
   final List<PerformanceMonitorProvider> _providers = [];
   bool _isInitialized = false;
   DateTime? _appStartTime;
@@ -230,10 +229,8 @@ class UniversalPerformanceMonitor implements PerformanceMonitor {
   Map<String, dynamic> _thresholds;
 
   UniversalPerformanceMonitor({
-    Logger? logger,
     List<PerformanceMonitorProvider> providers = const [],
-  }) : _logger = logger ?? Logger(),
-       _thresholds = {..._defaultThresholds} {
+  }) : _thresholds = {..._defaultThresholds} {
     _providers.addAll(providers);
   }
 
@@ -248,9 +245,9 @@ class UniversalPerformanceMonitor implements PerformanceMonitor {
       // Запуск периодического сбора системных метрик
       _startPeriodicMonitoring();
 
-      _logger.i('🎯 Universal Performance Monitor инициализирован');
+      Log.i('🎯 Universal Performance Monitor инициализирован');
     } catch (error, stackTrace) {
-      _logger.e(
+      Log.e(
         '❌ Ошибка инициализации Performance Monitor',
         error: error,
         stackTrace: stackTrace,
@@ -269,9 +266,9 @@ class UniversalPerformanceMonitor implements PerformanceMonitor {
         provider.trackAppStartup(startTime);
       }
 
-      _logger.d('🚀 Отслеживание запуска приложения начато: $startTime');
+      Log.d('🚀 Отслеживание запуска приложения начато: $startTime');
     } catch (error, stackTrace) {
-      _logger.e(
+      Log.e(
         '❌ Ошибка трекинга запуска приложения',
         error: error,
         stackTrace: stackTrace,
@@ -294,14 +291,14 @@ class UniversalPerformanceMonitor implements PerformanceMonitor {
         provider.trackFirstFrame();
       }
 
-      _logger.d('🖼️ Первый кадр отображен за $firstFrameDuration ms');
+      Log.d('🖼️ Первый кадр отображен за $firstFrameDuration ms');
 
       // Проверка порога производительности
       if (firstFrameDuration > (_thresholds['first_frame_slow'] ?? 1000)) {
-        _logger.w('⚠️ Медленный первый кадр: $firstFrameDuration ms');
+        Log.w('⚠️ Медленный первый кадр: $firstFrameDuration ms');
       }
     } catch (error, stackTrace) {
-      _logger.e(
+      Log.e(
         '❌ Ошибка трекинга первого кадра',
         error: error,
         stackTrace: stackTrace,
@@ -324,14 +321,14 @@ class UniversalPerformanceMonitor implements PerformanceMonitor {
         provider.trackAppReady();
       }
 
-      _logger.d('✅ Приложение готово за $totalStartupDuration ms');
+      Log.d('✅ Приложение готово за $totalStartupDuration ms');
 
       // Отправка финальной метрики запуска
       for (final provider in _providers) {
         provider.trackMetric('app_startup_total', totalStartupDuration);
       }
     } catch (error, stackTrace) {
-      _logger.e(
+      Log.e(
         '❌ Ошибка трекинга готовности приложения',
         error: error,
         stackTrace: stackTrace,
@@ -358,14 +355,14 @@ class UniversalPerformanceMonitor implements PerformanceMonitor {
         );
       }
 
-      _logger.d('🌐 Сетевой запрос: $method $endpoint - $durationMs ms');
+      Log.d('🌐 Сетевой запрос: $method $endpoint - $durationMs ms');
 
       // Проверка на медленные запросы
       if (durationMs > (_thresholds['network_request_slow'] ?? 1000)) {
-        _logger.w('⚠️ Медленный сетевой запрос: $endpoint - $durationMs ms');
+        Log.w('⚠️ Медленный сетевой запрос: $endpoint - $durationMs ms');
       }
     } catch (error, stackTrace) {
-      _logger.e(
+      Log.e(
         '❌ Ошибка трекинга сетевого запроса',
         error: error,
         stackTrace: stackTrace,
@@ -392,9 +389,9 @@ class UniversalPerformanceMonitor implements PerformanceMonitor {
         );
       }
 
-      _logger.d('💾 Операция БД: $operation - $durationMs ms');
+      Log.d('💾 Операция БД: $operation - $durationMs ms');
     } catch (error, stackTrace) {
-      _logger.e(
+      Log.e(
         '❌ Ошибка трекинга операции БД',
         error: error,
         stackTrace: stackTrace,
@@ -422,9 +419,9 @@ class UniversalPerformanceMonitor implements PerformanceMonitor {
       }
 
       final hitMiss = cacheHit == true ? 'HIT' : 'MISS';
-      _logger.d('🗂️ Кэш операция: $operation ($hitMiss) - $durationMs ms');
+      Log.d('🗂️ Кэш операция: $operation ($hitMiss) - $durationMs ms');
     } catch (error, stackTrace) {
-      _logger.e(
+      Log.e(
         '❌ Ошибка трекинга операции кэша',
         error: error,
         stackTrace: stackTrace,
@@ -449,14 +446,14 @@ class UniversalPerformanceMonitor implements PerformanceMonitor {
         );
       }
 
-      _logger.d('🖥️ Рендер экрана: $screenName - $renderTimeMs ms');
+      Log.d('🖥️ Рендер экрана: $screenName - $renderTimeMs ms');
 
       // Проверка на медленный рендер
       if (renderTimeMs > (_thresholds['screen_render_slow'] ?? 100)) {
-        _logger.w('⚠️ Медленный рендер экрана: $screenName - $renderTimeMs ms');
+        Log.w('⚠️ Медленный рендер экрана: $screenName - $renderTimeMs ms');
       }
     } catch (error, stackTrace) {
-      _logger.e(
+      Log.e(
         '❌ Ошибка трекинга рендера экрана',
         error: error,
         stackTrace: stackTrace,
@@ -482,10 +479,10 @@ class UniversalPerformanceMonitor implements PerformanceMonitor {
       }
 
       if (buildTimeMs > (_thresholds['widget_build_slow'] ?? 16)) {
-        _logger.d('🧱 Медленный виджет: $widgetName - $buildTimeMs ms');
+        Log.d('🧱 Медленный виджет: $widgetName - $buildTimeMs ms');
       }
     } catch (error, stackTrace) {
-      _logger.e(
+      Log.e(
         '❌ Ошибка трекинга построения виджета',
         error: error,
         stackTrace: stackTrace,
@@ -510,9 +507,9 @@ class UniversalPerformanceMonitor implements PerformanceMonitor {
         );
       }
 
-      _logger.d('👆 Взаимодействие: $interactionType - $durationMs ms');
+      Log.d('👆 Взаимодействие: $interactionType - $durationMs ms');
     } catch (error, stackTrace) {
-      _logger.e(
+      Log.e(
         '❌ Ошибка трекинга пользовательского взаимодействия',
         error: error,
         stackTrace: stackTrace,
@@ -534,10 +531,10 @@ class UniversalPerformanceMonitor implements PerformanceMonitor {
       }
 
       if (memoryUsage > (_thresholds['memory_warning'] ?? 200)) {
-        _logger.w('⚠️ Высокое использование памяти: $memoryUsage MB');
+        Log.w('⚠️ Высокое использование памяти: $memoryUsage MB');
       }
     } catch (error, stackTrace) {
-      _logger.e(
+      Log.e(
         '❌ Ошибка трекинга использования памяти',
         error: error,
         stackTrace: stackTrace,
@@ -557,9 +554,9 @@ class UniversalPerformanceMonitor implements PerformanceMonitor {
         provider.trackMetric('cpu_usage_percent', cpuUsage);
       }
 
-      _logger.d('⚡ Использование CPU: $cpuUsage %');
+      Log.d('⚡ Использование CPU: $cpuUsage %');
     } catch (error, stackTrace) {
-      _logger.e(
+      Log.e(
         '❌ Ошибка трекинга использования CPU',
         error: error,
         stackTrace: stackTrace,
@@ -576,9 +573,9 @@ class UniversalPerformanceMonitor implements PerformanceMonitor {
         provider.trackBatteryImpact();
       }
 
-      _logger.d('🔋 Мониторинг влияния на батарею');
+      Log.d('🔋 Мониторинг влияния на батарею');
     } catch (error, stackTrace) {
-      _logger.e(
+      Log.e(
         '❌ Ошибка трекинга влияния на батарею',
         error: error,
         stackTrace: stackTrace,
@@ -589,7 +586,7 @@ class UniversalPerformanceMonitor implements PerformanceMonitor {
   @override
   void setWarningThresholds(Map<String, dynamic> thresholds) {
     _thresholds.addAll(thresholds);
-    _logger.d('📊 Пороги предупреждений обновлены: $thresholds');
+    Log.d('📊 Пороги предупреждений обновлены: $thresholds');
   }
 
   @override
@@ -598,14 +595,14 @@ class UniversalPerformanceMonitor implements PerformanceMonitor {
       await provider.dispose();
     }
     _isInitialized = false;
-    _logger.i('🔚 Universal Performance Monitor остановлен');
+    Log.i('🔚 Universal Performance Monitor остановлен');
   }
 
   /// 🔄 ЗАПУСК ПЕРИОДИЧЕСКОГО МОНИТОРИНГА
   void _startPeriodicMonitoring() {
     // В реальной реализации здесь будет Timer.periodic
     // для сбора системных метрик каждые 30 секунд
-    _logger.d('⏰ Периодический мониторинг активирован');
+    Log.d('⏰ Периодический мониторинг активирован');
   }
 
   /// 🧪 СИМУЛЯЦИЯ ДАННЫХ ДЛЯ ДЕМОНСТРАЦИИ
@@ -666,29 +663,24 @@ abstract class PerformanceMonitorProvider {
 
 /// 🪵 ПРОВАЙДЕР ДЛЯ ЛОГИРОВАНИЯ В КОНСОЛЬ
 class ConsolePerformanceMonitorProvider implements PerformanceMonitorProvider {
-  final Logger _logger;
-
-  ConsolePerformanceMonitorProvider({Logger? logger})
-    : _logger = logger ?? Logger();
-
   @override
   Future<void> initialize() async {
-    _logger.i('🪵 Console Performance Monitor Provider инициализирован');
+    Log.i('🪵 Console Performance Monitor Provider инициализирован');
   }
 
   @override
   void trackAppStartup(DateTime startTime) {
-    _logger.d('🚀 [PERF] App Startup: $startTime');
+    Log.d('🚀 [PERF] App Startup: $startTime');
   }
 
   @override
   void trackFirstFrame() {
-    _logger.d('🖼️ [PERF] First Frame');
+    Log.d('🖼️ [PERF] First Frame');
   }
 
   @override
   void trackAppReady() {
-    _logger.d('✅ [PERF] App Ready');
+    Log.d('✅ [PERF] App Ready');
   }
 
   @override
@@ -698,7 +690,7 @@ class ConsolePerformanceMonitorProvider implements PerformanceMonitorProvider {
     required String method,
     int? statusCode,
   }) {
-    _logger.d(
+    Log.d(
       '🌐 [PERF] Network: $method $endpoint - $durationMs ms (${statusCode ?? "N/A"})',
     );
   }
@@ -710,7 +702,7 @@ class ConsolePerformanceMonitorProvider implements PerformanceMonitorProvider {
     String? table,
     int? recordsCount,
   }) {
-    _logger.d(
+    Log.d(
       '💾 [PERF] Database: $operation - $durationMs ms (table: $table, records: $recordsCount)',
     );
   }
@@ -722,7 +714,7 @@ class ConsolePerformanceMonitorProvider implements PerformanceMonitorProvider {
     bool? cacheHit,
     String? key,
   }) {
-    _logger.d(
+    Log.d(
       '🗂️ [PERF] Cache: $operation - $durationMs ms (hit: $cacheHit, key: $key)',
     );
   }
@@ -733,7 +725,7 @@ class ConsolePerformanceMonitorProvider implements PerformanceMonitorProvider {
     required int renderTimeMs,
     String? complexity,
   }) {
-    _logger.d(
+    Log.d(
       '🖥️ [PERF] Screen: $screenName - $renderTimeMs ms (complexity: $complexity)',
     );
   }
@@ -744,7 +736,7 @@ class ConsolePerformanceMonitorProvider implements PerformanceMonitorProvider {
     required int buildTimeMs,
     int? rebuildCount,
   }) {
-    _logger.d(
+    Log.d(
       '🧱 [PERF] Widget: $widgetName - $buildTimeMs ms (rebuilds: $rebuildCount)',
     );
   }
@@ -755,51 +747,47 @@ class ConsolePerformanceMonitorProvider implements PerformanceMonitorProvider {
     required int durationMs,
     String? targetElement,
   }) {
-    _logger.d(
+    Log.d(
       '👆 [PERF] Interaction: $interactionType - $durationMs ms (target: $targetElement)',
     );
   }
 
   @override
   void trackMemoryUsage() {
-    _logger.d('💾 [PERF] Memory Usage');
+    Log.d('💾 [PERF] Memory Usage');
   }
 
   @override
   void trackCpuUsage() {
-    _logger.d('⚡ [PERF] CPU Usage');
+    Log.d('⚡ [PERF] CPU Usage');
   }
 
   @override
   void trackBatteryImpact() {
-    _logger.d('🔋 [PERF] Battery Impact');
+    Log.d('🔋 [PERF] Battery Impact');
   }
 
   @override
   void trackMetric(String name, dynamic value) {
-    _logger.d('📊 [PERF] Metric: $name = $value');
+    Log.d('📊 [PERF] Metric: $name = $value');
   }
 
   @override
   Future<void> dispose() async {
-    _logger.i('🔚 Console Performance Monitor Provider остановлен');
+    Log.i('🔚 Console Performance Monitor Provider остановлен');
   }
 }
 
 /// 🧪 MOCK ПРОВАЙДЕР ДЛЯ ТЕСТИРОВАНИЯ
 class MockPerformanceMonitorProvider implements PerformanceMonitorProvider {
   final List<Map<String, dynamic>> _metrics = [];
-  final Logger _logger;
-
-  MockPerformanceMonitorProvider({Logger? logger})
-    : _logger = logger ?? Logger();
 
   List<Map<String, dynamic>> get metrics => List.unmodifiable(_metrics);
   void clearMetrics() => _metrics.clear();
 
   @override
   Future<void> initialize() async {
-    _logger.i('🧪 Mock Performance Monitor Provider инициализирован');
+    Log.i('🧪 Mock Performance Monitor Provider инициализирован');
   }
 
   @override
@@ -945,6 +933,6 @@ class MockPerformanceMonitorProvider implements PerformanceMonitorProvider {
   @override
   Future<void> dispose() async {
     _metrics.clear();
-    _logger.i('🔚 Mock Performance Monitor Provider остановлен');
+    Log.i('🔚 Mock Performance Monitor Provider остановлен');
   }
 }

@@ -8,6 +8,10 @@ import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/log_utils.dart';
+import '../auth/auth_service.dart';
+import '../network/interceptors/auth_interceptor.dart';
+import '../network/interceptors/retry_interceptor.dart';
+import 'network_module.dart';
 
 // Импорт сгенерированного файла
 import 'injector.config.dart';
@@ -70,6 +74,9 @@ Future<void> configureDependencies({
     // Валидация зарегистрированных зависимостей
     _validateCoreDependencies();
 
+    // Настройка интерцепторов для Dio
+    await _configureNetworkInterceptors();
+
     Log.i('✅ DI контейнер успешно инициализирован');
   } catch (e, stackTrace) {
     Log.e('💥 Ошибка инициализации DI', error: e, stackTrace: stackTrace);
@@ -91,13 +98,82 @@ Future<void> _registerManualDependencies() async {
 
   Log.d('✅ SharedPreferences зарегистрирован');
 }
+
+// ================================
+// 🌐 НАСТРОЙКА СЕТЕВЫХ ИНТЕРЦЕПТОРОВ
+// ================================
+
+/// Настройка интерцепторов для Dio клиента
+Future<void> _configureNetworkInterceptors() async {
+  Log.d('🔧 Настройка сетевых интерцепторов...');
+
+  try {
+    final dio = getIt<Dio>();
+
+    // Получаем фабрики для создания интерцепторов
+    final retryInterceptorFactory = getIt.tryGet<RetryInterceptorFactory>();
+    final authInterceptorFactory = getIt.tryGet<AuthInterceptorFactory>();
+
+    // Создаем RetryInterceptor
+    RetryInterceptor? retryInterceptor;
+    if (retryInterceptorFactory != null) {
+      retryInterceptor = retryInterceptorFactory.create();
+      Log.d('✅ RetryInterceptor создан');
+    } else {
+      Log.w('⚠️ RetryInterceptorFactory не найден в DI');
+    }
+
+    // Создаем AuthInterceptor (требует AuthService)
+    AuthInterceptor? authInterceptor;
+    if (authInterceptorFactory != null) {
+      // Проверяем наличие AuthService
+      final authService = getIt.tryGet<AuthService>();
+      if (authService != null) {
+        authInterceptor = authInterceptorFactory.create(
+          getToken: () => authService.getToken(),
+          refreshToken: () => authService.refreshToken(),
+          onTokenExpired: () => authService.onTokenExpired(),
+        );
+        Log.d('✅ AuthInterceptor создан с AuthService');
+      } else {
+        Log.w('⚠️ AuthService не найден, AuthInterceptor не будет добавлен');
+        Log.w(
+          '💡 Для использования AuthInterceptor зарегистрируйте AuthService в DI',
+        );
+      }
+    } else {
+      Log.w('⚠️ AuthInterceptorFactory не найден в DI');
+    }
+
+    // Настраиваем интерцепторы через DioInterceptorConfigurator
+    DioInterceptorConfigurator.configureInterceptors(
+      dio,
+      retryInterceptor: retryInterceptor,
+      authInterceptor: authInterceptor,
+    );
+
+    Log.i('✅ Сетевые интерцепторы настроены');
+  } catch (e, stackTrace) {
+    Log.e(
+      '❌ Ошибка настройки сетевых интерцепторов',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    // Не прерываем инициализацию, приложение может работать без интерцепторов
+  }
+}
+
 // ================================
 // ✅ ВАЛИДАЦИЯ ЗАВИСИМОСТЕЙ
 // ================================
 
 /// Проверка что все основные зависимости зарегистрированы
 void _validateCoreDependencies() {
-  final coreDependencies = <Type>[Dio, Connectivity, SharedPreferences, Log];
+  final coreDependencies = <Type>[
+    Dio,
+    Connectivity,
+    SharedPreferences,
+  ]; // Убрал Log из списка
 
   final missingDependencies = <Type>[];
 

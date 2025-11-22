@@ -1,4 +1,4 @@
-import 'package:logger/logger.dart';
+import '../utils/log_utils.dart';
 
 // =============================================
 // 📊 ANALYTICS SERVICE
@@ -289,7 +289,6 @@ abstract class AnalyticsService {
 /// - ✅ Минимальные overhead на мобильных устройствах
 
 class UniversalAnalyticsService implements AnalyticsService {
-  final Logger _logger;
   final List<AnalyticsProvider> _providers = [];
   bool _isInitialized = false;
   final Map<String, DateTime> _timingEvents = {};
@@ -330,7 +329,6 @@ class UniversalAnalyticsService implements AnalyticsService {
   /// СОЗДАНИЕ ЭКЗЕМПЛЯРА УНИВЕРСАЛЬНОГО АНАЛИТИЧЕСКОГО СЕРВИСА
   ///
   /// 📝 **Параметры:**
-  /// - `logger`: Логгер для внутреннего логирования (опционально)
   /// - `providers`: Список провайдеров для отправки событий (опционально)
   ///
   /// 🎯 **Пример создания:**
@@ -342,10 +340,7 @@ class UniversalAnalyticsService implements AnalyticsService {
   ///   ],
   /// );
   /// ```
-  UniversalAnalyticsService({
-    Logger? logger,
-    List<AnalyticsProvider> providers = const [],
-  }) : _logger = logger ?? Logger() {
+  UniversalAnalyticsService({List<AnalyticsProvider> providers = const []}) {
     _providers.addAll(providers);
   }
 
@@ -359,7 +354,7 @@ class UniversalAnalyticsService implements AnalyticsService {
   /// ⚠️ **Требует:** повторной инициализации сервиса после добавления
   void addProvider(AnalyticsProvider provider) {
     _providers.add(provider);
-    _logger.d('➕ Добавлен провайдер аналитики: ${provider.runtimeType}');
+    Log.d('➕ Добавлен провайдер аналитики: ${provider.runtimeType}');
   }
 
   /// УДАЛЕНИЕ ПРОВАЙДЕРА АНАЛИТИКИ
@@ -370,7 +365,7 @@ class UniversalAnalyticsService implements AnalyticsService {
   /// - `provider`: Экземпляр провайдера для удаления
   void removeProvider(AnalyticsProvider provider) {
     _providers.remove(provider);
-    _logger.d('➖ Удален провайдер аналитики: ${provider.runtimeType}');
+    Log.d('➖ Удален провайдер аналитики: ${provider.runtimeType}');
   }
 
   // =============================================
@@ -380,20 +375,20 @@ class UniversalAnalyticsService implements AnalyticsService {
   @override
   Future<void> initialize() async {
     try {
-      _logger.i('🎯 Начало инициализации Universal Analytics Service');
+      Log.i('🎯 Начало инициализации Universal Analytics Service');
 
       // Последовательная инициализация всех провайдеров
       for (final provider in _providers) {
         await provider.initialize();
-        _logger.d('✅ Провайдер ${provider.runtimeType} инициализирован');
+        Log.d('✅ Провайдер ${provider.runtimeType} инициализирован');
       }
 
       _isInitialized = true;
-      _logger.i(
+      Log.i(
         '🎯 Universal Analytics Service успешно инициализирован с ${_providers.length} провайдерами',
       );
     } catch (error, stackTrace) {
-      _logger.e(
+      Log.e(
         '❌ Критическая ошибка инициализации Universal Analytics Service',
         error: error,
         stackTrace: stackTrace,
@@ -406,7 +401,7 @@ class UniversalAnalyticsService implements AnalyticsService {
   void trackEvent(String name, [Map<String, dynamic>? parameters]) {
     // 🔒 ПРОВЕРКА ИНИЦИАЛИЗАЦИИ
     if (!_isInitialized) {
-      _logger.w('⚠️ Попытка трекинга события до инициализации сервиса: $name');
+      Log.w('⚠️ Попытка трекинга события до инициализации сервиса: $name');
       return;
     }
 
@@ -420,9 +415,9 @@ class UniversalAnalyticsService implements AnalyticsService {
         provider.trackEvent(name, validatedParameters);
       }
 
-      _logger.d('📊 Событие отслежено: $name, параметры: $validatedParameters');
+      Log.d('📊 Событие отслежено: $name, параметры: $validatedParameters');
     } catch (error, stackTrace) {
-      _logger.e(
+      Log.e(
         '❌ Ошибка трекинга события: $name',
         error: error,
         stackTrace: stackTrace,
@@ -433,9 +428,7 @@ class UniversalAnalyticsService implements AnalyticsService {
   @override
   void trackScreen(String screenName, [Map<String, dynamic>? parameters]) {
     if (!_isInitialized) {
-      _logger.w(
-        '⚠️ Попытка трекинга экрана до инициализации сервиса: $screenName',
-      );
+      Log.w('⚠️ Попытка трекинга экрана до инициализации сервиса: $screenName');
       return;
     }
 
@@ -446,9 +439,9 @@ class UniversalAnalyticsService implements AnalyticsService {
         provider.trackScreen(screenName, safeParameters);
       }
 
-      _logger.d('🖥️ Отслежен экран: $screenName');
+      Log.d('🖥️ Отслежен экран: $screenName');
     } catch (error, stackTrace) {
-      _logger.e(
+      Log.e(
         '❌ Ошибка трекинга экрана: $screenName',
         error: error,
         stackTrace: stackTrace,
@@ -459,7 +452,7 @@ class UniversalAnalyticsService implements AnalyticsService {
   @override
   void setUserProperties(Map<String, dynamic> properties) {
     if (!_isInitialized) {
-      _logger.w('⚠️ Попытка установки свойств до инициализации сервиса');
+      Log.w('⚠️ Попытка установки свойств до инициализации сервиса');
       return;
     }
 
@@ -470,9 +463,9 @@ class UniversalAnalyticsService implements AnalyticsService {
         provider.setUserProperties(safeProperties ?? {});
       }
 
-      _logger.d('👤 Установлены пользовательские свойства: $safeProperties');
+      Log.d('👤 Установлены пользовательские свойства: $safeProperties');
     } catch (error, stackTrace) {
-      _logger.e(
+      Log.e(
         '❌ Ошибка установки пользовательских свойств',
         error: error,
         stackTrace: stackTrace,
@@ -483,9 +476,7 @@ class UniversalAnalyticsService implements AnalyticsService {
   @override
   void setUserId(String? userId) {
     if (!_isInitialized) {
-      _logger.w(
-        '⚠️ Попытка установки ID пользователя до инициализации сервиса',
-      );
+      Log.w('⚠️ Попытка установки ID пользователя до инициализации сервиса');
       return;
     }
 
@@ -494,9 +485,9 @@ class UniversalAnalyticsService implements AnalyticsService {
         provider.setUserId(userId);
       }
 
-      _logger.d('🆔 Установлен ID пользователя: ${userId ?? 'null'}');
+      Log.d('🆔 Установлен ID пользователя: ${userId ?? 'null'}');
     } catch (error, stackTrace) {
-      _logger.e(
+      Log.e(
         '❌ Ошибка установки ID пользователя',
         error: error,
         stackTrace: stackTrace,
@@ -554,9 +545,9 @@ class UniversalAnalyticsService implements AnalyticsService {
         provider.setCurrentScreen(screenName);
       }
 
-      _logger.d('📍 Установлен текущий экран: $screenName');
+      Log.d('📍 Установлен текущий экран: $screenName');
     } catch (error, stackTrace) {
-      _logger.e(
+      Log.e(
         '❌ Ошибка установки текущего экрана: $screenName',
         error: error,
         stackTrace: stackTrace,
@@ -567,16 +558,14 @@ class UniversalAnalyticsService implements AnalyticsService {
   @override
   void startTiming(String eventName) {
     _timingEvents[eventName] = DateTime.now();
-    _logger.d('⏱️ Начат замер времени для события: $eventName');
+    Log.d('⏱️ Начат замер времени для события: $eventName');
   }
 
   @override
   void endTiming(String eventName) {
     final startTime = _timingEvents[eventName];
     if (startTime == null) {
-      _logger.w(
-        '⚠️ Попытка завершить несуществующий замер времени: $eventName',
-      );
+      Log.w('⚠️ Попытка завершить несуществующий замер времени: $eventName');
       return;
     }
 
@@ -588,7 +577,7 @@ class UniversalAnalyticsService implements AnalyticsService {
       'event_name': eventName,
     });
 
-    _logger.d('⏱️ Завершен замер времени для $eventName: ${duration}ms');
+    Log.d('⏱️ Завершен замер времени для $eventName: ${duration}ms');
   }
 
   @override
@@ -600,9 +589,9 @@ class UniversalAnalyticsService implements AnalyticsService {
         await provider.setSessionTimeout(duration);
       }
 
-      _logger.d('⏰ Установлен таймаут сессии: ${duration.inMinutes} минут');
+      Log.d('⏰ Установлен таймаут сессии: ${duration.inMinutes} минут');
     } catch (error, stackTrace) {
-      _logger.e(
+      Log.e(
         '❌ Ошибка установки таймаута сессии',
         error: error,
         stackTrace: stackTrace,
@@ -612,7 +601,7 @@ class UniversalAnalyticsService implements AnalyticsService {
 
   @override
   Future<void> dispose() async {
-    _logger.i('🔚 Начало остановки Universal Analytics Service');
+    Log.i('🔚 Начало остановки Universal Analytics Service');
 
     for (final provider in _providers) {
       await provider.dispose();
@@ -620,7 +609,7 @@ class UniversalAnalyticsService implements AnalyticsService {
 
     _isInitialized = false;
     _timingEvents.clear();
-    _logger.i('🔚 Universal Analytics Service полностью остановлен');
+    Log.i('🔚 Universal Analytics Service полностью остановлен');
   }
 
   // =============================================
@@ -650,7 +639,7 @@ class UniversalAnalyticsService implements AnalyticsService {
 
       if (isSensitive) {
         filtered[key] = '[FILTERED]';
-        _logger.d('🔒 Отфильтрован чувствительный параметр: $key');
+        Log.d('🔒 Отфильтрован чувствительный параметр: $key');
       } else {
         filtered[key] = value;
       }
@@ -678,7 +667,7 @@ class UniversalAnalyticsService implements AnalyticsService {
 
     for (final entry in parameters.entries) {
       if (parameterCount >= _maxParameters) {
-        _logger.w(
+        Log.w(
           '⚠️ Превышено максимальное количество параметров события. Оставшиеся параметры игнорируются.',
         );
         break;
@@ -692,7 +681,7 @@ class UniversalAnalyticsService implements AnalyticsService {
         final stringValue = value.toString();
         if (stringValue.length > _maxParameterValueLength) {
           value = '${stringValue.substring(0, _maxParameterValueLength)}...';
-          _logger.w(
+          Log.w(
             '⚠️ Значение параметра $key обрезано до $_maxParameterValueLength символов',
           );
         }
@@ -727,13 +716,13 @@ class UniversalAnalyticsService implements AnalyticsService {
         if (!isSensitive) {
           safeQueryParameters[key] = value;
         } else {
-          _logger.d('🔒 Отфильтрован чувствительный query параметр: $key');
+          Log.d('🔒 Отфильтрован чувствительный query параметр: $key');
         }
       });
 
       return uri.replace(queryParameters: safeQueryParameters).toString();
     } catch (e) {
-      _logger.w('⚠️ Ошибка парсинга URL: $url, возвращен оригинальный URL');
+      Log.w('⚠️ Ошибка парсинга URL: $url, возвращен оригинальный URL');
       return url;
     }
   }
@@ -823,52 +812,47 @@ abstract class AnalyticsProvider {
 /// - ✅ Нулевые задержки и overhead
 
 class ConsoleAnalyticsProvider implements AnalyticsProvider {
-  final Logger _logger;
-
   /// СОЗДАНИЕ КОНСОЛЬНОГО ПРОВАЙДЕРА
-  ///
-  /// 📝 **Параметры:**
-  /// - `logger`: Логгер для вывода событий (опционально)
-  ConsoleAnalyticsProvider({Logger? logger}) : _logger = logger ?? Logger();
+  ConsoleAnalyticsProvider();
 
   @override
   Future<void> initialize() async {
-    _logger.i('🪵 Console Analytics Provider инициализирован');
+    Log.i('🪵 Console Analytics Provider инициализирован');
   }
 
   @override
   void trackEvent(String name, [Map<String, dynamic>? parameters]) {
-    _logger.d('📊 [ANALYTICS] Event: $name, Parameters: $parameters');
+    Log.d('📊 [ANALYTICS] Event: $name, Parameters: $parameters');
   }
 
   @override
   void trackScreen(String screenName, [Map<String, dynamic>? parameters]) {
-    _logger.d('🖥️ [ANALYTICS] Screen: $screenName, Parameters: $parameters');
+    Log.d('🖥️ [ANALYTICS] Screen: $screenName, Parameters: $parameters');
   }
 
   @override
   void setUserProperties(Map<String, dynamic> properties) {
-    _logger.d('👤 [ANALYTICS] User Properties: $properties');
+    Log.d('👤 [ANALYTICS] User Properties: $properties');
   }
 
   @override
   void setUserId(String? userId) {
-    _logger.d('🆔 [ANALYTICS] User ID: $userId');
+    Log.d('🆔 [ANALYTICS] User ID: $userId');
   }
 
   @override
   void setCurrentScreen(String screenName) {
-    _logger.d('📍 [ANALYTICS] Current Screen: $screenName');
+    Log.d('📍 [ANALYTICS] Current Screen: $screenName');
   }
 
   @override
   Future<void> setSessionTimeout(Duration duration) async {
-    _logger.d('⏰ [ANALYTICS] Session Timeout: ${duration.inMinutes} minutes');
+    Log.d('⏰ [ANALYTICS] Session Timeout: ${duration.inMinutes} minutes');
   }
 
   @override
   Future<void> dispose() async {
-    _logger.i('🔚 Console Analytics Provider остановлен');
+    Log.i('🔚 Console Analytics Provider остановлен');
   }
 }
 
@@ -891,13 +875,9 @@ class ConsoleAnalyticsProvider implements AnalyticsProvider {
 
 class MockAnalyticsProvider implements AnalyticsProvider {
   final List<Map<String, dynamic>> _events = [];
-  final Logger _logger;
 
   /// СОЗДАНИЕ MOCK ПРОВАЙДЕРА
-  ///
-  /// 📝 **Параметры:**
-  /// - `logger`: Логгер для отладки (опционально)
-  MockAnalyticsProvider({Logger? logger}) : _logger = logger ?? Logger();
+  MockAnalyticsProvider();
 
   /// 📋 ПОЛУЧЕНИЕ ВСЕХ ОТСЛЕЖЕННЫХ СОБЫТИЙ
   ///
@@ -909,7 +889,7 @@ class MockAnalyticsProvider implements AnalyticsProvider {
   /// Удаляет все сохраненные события. Вызывается между тестами.
   void clearEvents() {
     _events.clear();
-    _logger.d('🧹 История событий mock провайдера очищена');
+    Log.d('🧹 История событий mock провайдера очищена');
   }
 
   /// 🔍 ПОИСК СОБЫТИЙ ПО ТИПУ
@@ -934,7 +914,7 @@ class MockAnalyticsProvider implements AnalyticsProvider {
 
   @override
   Future<void> initialize() async {
-    _logger.i('🧪 Mock Analytics Provider инициализирован');
+    Log.i('🧪 Mock Analytics Provider инициализирован');
   }
 
   @override
@@ -945,7 +925,7 @@ class MockAnalyticsProvider implements AnalyticsProvider {
       'parameters': parameters,
       'timestamp': DateTime.now(),
     });
-    _logger.d('🧪 Mock event tracked: $name');
+    Log.d('🧪 Mock event tracked: $name');
   }
 
   @override
@@ -956,7 +936,7 @@ class MockAnalyticsProvider implements AnalyticsProvider {
       'parameters': parameters,
       'timestamp': DateTime.now(),
     });
-    _logger.d('🧪 Mock screen tracked: $screenName');
+    Log.d('🧪 Mock screen tracked: $screenName');
   }
 
   @override
@@ -966,7 +946,7 @@ class MockAnalyticsProvider implements AnalyticsProvider {
       'properties': properties,
       'timestamp': DateTime.now(),
     });
-    _logger.d('🧪 Mock user properties set: $properties');
+    Log.d('🧪 Mock user properties set: $properties');
   }
 
   @override
@@ -976,7 +956,7 @@ class MockAnalyticsProvider implements AnalyticsProvider {
       'user_id': userId,
       'timestamp': DateTime.now(),
     });
-    _logger.d('🧪 Mock user ID set: $userId');
+    Log.d('🧪 Mock user ID set: $userId');
   }
 
   @override
@@ -986,7 +966,7 @@ class MockAnalyticsProvider implements AnalyticsProvider {
       'screen_name': screenName,
       'timestamp': DateTime.now(),
     });
-    _logger.d('🧪 Mock current screen set: $screenName');
+    Log.d('🧪 Mock current screen set: $screenName');
   }
 
   @override
@@ -996,12 +976,12 @@ class MockAnalyticsProvider implements AnalyticsProvider {
       'duration': duration,
       'timestamp': DateTime.now(),
     });
-    _logger.d('🧪 Mock session timeout set: ${duration.inMinutes} minutes');
+    Log.d('🧪 Mock session timeout set: ${duration.inMinutes} minutes');
   }
 
   @override
   Future<void> dispose() async {
     _events.clear();
-    _logger.i('🔚 Mock Analytics Provider остановлен');
+    Log.i('🔚 Mock Analytics Provider остановлен');
   }
 }

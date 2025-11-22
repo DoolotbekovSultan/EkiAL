@@ -16,21 +16,30 @@ import '../../utils/log_utils.dart';
 /// - Логику повторной аутентификации
 ///
 /// Пример работы:
-/// 1. Добавляет токен к каждому запросуs
+/// 1. Добавляет токен к каждому запросу
 /// 2. При 401 ошибке пытается обновить токен
 /// 3. Повторяет оригинальный запрос с новым токеном
 /// 4. Если обновление не удалось - разлогинивает пользователя
 class AuthInterceptor extends Interceptor {
+  final Dio _dio;
   final Future<String?> Function() _getToken;
   final Future<String?> Function() _refreshToken;
   final Future<void> Function() _onTokenExpired;
 
   /// Создание интерцептора аутентификации
+  ///
+  /// 📝 **Параметры:**
+  /// - `dio`: Dio клиент для повторных запросов (должен быть из DI)
+  /// - `getToken`: Функция получения текущего токена
+  /// - `refreshToken`: Функция обновления токена
+  /// - `onTokenExpired`: Функция обработки истечения токена
   AuthInterceptor({
+    required Dio dio,
     required Future<String?> Function() getToken,
     required Future<String?> Function() refreshToken,
     required Future<void> Function() onTokenExpired,
-  }) : _getToken = getToken,
+  }) : _dio = dio,
+       _getToken = getToken,
        _refreshToken = refreshToken,
        _onTokenExpired = onTokenExpired;
 
@@ -117,8 +126,7 @@ class AuthInterceptor extends Interceptor {
       '🔐 Повторяем запрос с новым токеном: ${options.method} ${options.path}',
     );
 
-    // Создаем новый Dio для повторного запроса
-    final dio = Dio();
-    return await dio.fetch<dynamic>(options);
+    // ✅ Используем существующий Dio клиент из DI
+    return await _dio.fetch<dynamic>(options);
   }
 }
